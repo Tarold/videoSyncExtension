@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "SyncPlayer",
+  "version": "2.2",
+  "description": "Synchronize video playback with friends via Context Menu.",
+  "permissions": ["activeTab", "scripting", "tabs", "storage", "contextMenus"],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "all_frames": true
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+/* styles.css */
+body {
+  width: 200px;
+  font-family: Arial, sans-serif;
+}
+
+.sync-player-btn {
+  position: absolute;
+  z-index: 2147483647; /* Максимальний Z-Index */
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: 1px solid #00ff00;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  pointer-events: auto;
+}
+.sync-active-indicator {
+  position: absolute;
+  z-index: 2147483647;
+  width: 15px;
+  height: 15px;
+  background-color: #00ff00;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #00ff00;
+  pointer-events: none; /* Щоб не заважати клікати на відео */
+}

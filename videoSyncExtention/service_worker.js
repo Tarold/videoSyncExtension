@@ -19,7 +19,7 @@ function startKeepAlive() {
   if (keepAliveInterval) clearInterval(keepAliveInterval);
   keepAliveInterval = setInterval(
     () => chrome.runtime.getPlatformInfo(() => {}),
-    20000
+    20000,
   );
 }
 function stopKeepAlive() {
@@ -153,6 +153,16 @@ function handleServerMessage(data) {
     case 'error':
       alert('SyncPlayer Error: ' + data.message);
       break;
+
+    case 'room-meta-update':
+      // Оновлення метаданих кімнати (користувачі, налаштування, тощо)
+      chrome.storage.local.set({
+        settings: data.settings,
+        hosts: data.hosts,
+        users: data.users,
+        ownerId: data.ownerId,
+      });
+      break;
   }
 }
 
@@ -188,6 +198,22 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
     });
   }
 
+  // Update Settings: Popup sends new settings
+  if (req.action === 'update-settings') {
+    chrome.storage.local.get(['myUserId'], (res) => {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(
+          JSON.stringify({
+            action: 'update-settings',
+            roomId: req.roomId,
+            userId: res.myUserId,
+            payload: { settings: req.settings },
+          }),
+        );
+      }
+    });
+  }
+
   // Video Selection: Content Script informs us it attached a video
   if (req.action === 'video-attached-request') {
     // --- ЗАПИТ НА СТАН (SERVER AUTHORITY) ---
@@ -210,7 +236,7 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
             action: 'get-state',
             roomId: res.roomId,
             userId: res.myUserId,
-          })
+          }),
         );
       }
     });
@@ -226,7 +252,7 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
             roomId: res.roomId,
             userId: res.myUserId,
             payload: { playerState: req.status },
-          })
+          }),
         );
       }
     });
@@ -242,7 +268,7 @@ function requestServerState() {
           action: 'get-state',
           roomId: res.roomId,
           userId: res.myUserId,
-        })
+        }),
       );
     }
   });

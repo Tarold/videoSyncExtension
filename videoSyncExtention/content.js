@@ -2,6 +2,8 @@ let activeVideo = null;
 let isRemoteUpdate = false;
 let isInitializing = false;
 let lastRightClickedVideo = null;
+let roomSettings = null;
+let isOwner = false;
 
 // --- Helpers ---
 function safeSendMessage(message) {
@@ -75,7 +77,7 @@ document.addEventListener(
         ? event.target
         : document.querySelector('video');
   },
-  true
+  true,
 );
 
 function attachListeners(video) {
@@ -104,10 +106,22 @@ function attachListeners(video) {
   // 2. Вмикаємо режим ініціалізації (блокуємо відправку локальних подій)
   isInitializing = true;
 
+  // Отримуємо поточні налаштування кімнати
+  chrome.storage.local.get(['settings', 'isOwner'], (res) => {
+    roomSettings = res.settings || { democracy: true };
+    isOwner = res.isOwner || false;
+  });
+
   const eventHandler = () => {
     // Якщо це оновлення від сервера АБО ми ще не отримали перший стан сервера (isInitializing)
     // АБО activeVideo = null (після detach)
     if (isRemoteUpdate || isInitializing || !activeVideo) return;
+
+    // Перевіряємо, чи дозволено користувачу змінювати стан відео (перевірка democracy)
+    if (roomSettings && !roomSettings.democracy && !isOwner) {
+      // democracy відключено (false) і користувач не адмін
+      return;
+    }
 
     setTimeout(() => {
       if (isRemoteUpdate || isInitializing || !activeVideo) return;
@@ -184,5 +198,23 @@ chrome.runtime.onMessage.addListener((msg) => {
         applyRemoteStatus(msg.status);
       }
     });
+  }
+
+  // --- НОВЕ: Обновлення налаштувань кімнати ---
+  if (msg.action === 'room-settings-updated') {
+    roomSettings = msg.settings;
+    isOwner = msg.isOwner;
+  }
+});
+
+// Слухаємо зміни в chrome.storage для оновлення налаштувань
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'local') {
+    if (changes.settings) {
+      roomSettings = changes.settings.newValue || { democracy: true };
+    }
+    if (changes.isOwner) {
+      isOwner = changes.isOwner.newValue || false;
+    }
   }
 });

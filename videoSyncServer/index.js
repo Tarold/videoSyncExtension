@@ -84,7 +84,7 @@ wss.on('connection', (ws) => {
               state: room.playerState,
               videoUrl: room.videoUrl,
               initiatorId: 'server', // ВИКОРИСТОВУЙТЕ "server" АБО ПУСТИЙ РЯДОК
-            })
+            }),
           );
         }
         break;
@@ -121,9 +121,40 @@ wss.on('connection', (ws) => {
               videoUrl: room.videoUrl,
               initiatorId: userId,
             },
-            ws
+            ws,
           );
         }
+        break;
+      }
+
+      case 'update-settings': {
+        // Оновлення налаштувань кімнати (тільки власник)
+        const room = rooms.get(roomId);
+        if (!room) {
+          ws.send(
+            JSON.stringify({ action: 'error', message: 'Room not found' }),
+          );
+          return;
+        }
+
+        // Тільки власник може змінювати налаштування
+        if (room.ownerId !== userId) {
+          ws.send(
+            JSON.stringify({
+              action: 'error',
+              message: 'Only room owner can change settings',
+            }),
+          );
+          return;
+        }
+
+        // Оновлюємо налаштування
+        if (payload.settings) {
+          room.settings = { ...room.settings, ...payload.settings };
+        }
+
+        // Розсилаємо оновлені налаштування всім користувачам
+        broadcastRoomState(roomId);
         break;
       }
     }
@@ -142,7 +173,7 @@ wss.on('connection', (ws) => {
     const room = rooms.get(roomId);
     if (!room) {
       socket.send(
-        JSON.stringify({ action: 'error', message: 'Room not found' })
+        JSON.stringify({ action: 'error', message: 'Room not found' }),
       );
       return;
     }
@@ -160,7 +191,7 @@ wss.on('connection', (ws) => {
         settings: room.settings,
         videoUrl: room.videoUrl,
         // В initial state тепер не потрібно слати playerState, бо клієнт його сам запросить через get-state
-      })
+      }),
     );
 
     broadcastRoomState(roomId);

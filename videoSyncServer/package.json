@@ -1,8 +1,11 @@
 {
   "dependencies": {
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "pg": "^8.11.3",
+    "dotenv": "^16.3.1"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "init-db": "node -e \"require('dotenv').config(); const { exec } = require('child_process'); exec('psql -U ' + process.env.DB_USER + ' -d ' + process.env.DB_NAME + ' -h ' + process.env.DB_HOST + ' -f sql/schema.sql', (err, stdout, stderr) => { if (err) { console.error(err); process.exit(1); } console.log(stdout); });\""
   }
 }

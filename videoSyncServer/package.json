@@ -1,11 +1,43 @@
 {
-  "dependencies": {
-    "ws": "^8.18.3",
-    "pg": "^8.11.3",
-    "dotenv": "^16.3.1"
+  "name": "video-sync-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WebSocket server for SyncPlayer: rooms, permissions and playback state, persisted in PostgreSQL",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
   },
   "scripts": {
-    "start": "node index.js",
-    "init-db": "node -e \"require('dotenv').config(); const { exec } = require('child_process'); exec('psql -U ' + process.env.DB_USER + ' -d ' + process.env.DB_NAME + ' -h ' + process.env.DB_HOST + ' -f sql/schema.sql', (err, stdout, stderr) => { if (err) { console.error(err); process.exit(1); } console.log(stdout); });\""
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
+    "migrate": "node dist/db/migrate-cli.js",
+    "migrate:dev": "tsx --env-file-if-exists=.env src/db/migrate-cli.ts",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:all": "vitest run",
+    "smoke": "tsx scripts/smoke.ts"
+  },
+  "dependencies": {
+    "pg": "^8.23.1",
+    "pino": "^10.4.0",
+    "ws": "^8.23.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
+    "@types/ws": "^8.18.2",
+    "eslint": "^10.15.0",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.73.0",
+    "vitest": "^5.1.1"
   }
 }

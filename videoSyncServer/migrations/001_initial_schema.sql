@@ -1,4 +1,4 @@
--- Video Sync Server Database Schema
+-- Initial Video Sync Server schema (formerly sql/schema.sql).
 -- PostgreSQL 14+
 
 -- Таблиця кімнат (Rooms)
